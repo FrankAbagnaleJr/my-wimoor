@@ -1,0 +1,21 @@
+server:
+  port: 8099
+spring:
+  application:
+    name: wimoor-gateway
+  cloud:
+    nacos:
+      server-addr: 192.168.101.65:8848
+      discovery:
+        namespace: prod_wimoor
+      config:
+        file-extension: yaml
+        namespace: prod_wimoor
+        # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+

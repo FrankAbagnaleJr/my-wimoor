@@ -1,0 +1,23 @@
+server:
+  port: 8092
+  servlet: 
+     context-path: /amazonadv
+spring:
+  application:
+    name: wimoor-amazon-adv
+  cloud:
+    nacos:
+      server-addr: 192.168.101.65:8848
+      discovery:
+        namespace: prod_wimoor
+      config:
+        file-extension: Properties
+        namespace: prod_wimoor
+               # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
+

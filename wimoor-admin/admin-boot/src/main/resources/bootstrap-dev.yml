@@ -1,0 +1,22 @@
+server:
+  port: 8085
+  servlet: 
+     context-path: /admin
+spring:
+  application:
+    name: wimoor-admin
+  cloud:
+    nacos:
+      server-addr: 192.168.101.65:8848
+      # 注册中心
+      discovery:
+      # 配置中心
+      config:
+        file-extension: Properties
+             # 公共配置
+        shared-configs[0]: 
+          data-id: wimoor-common
+          refresh: true
+        shared-configs[1]: 
+          data-id: wimoor-commom-ext
+          refresh: true
