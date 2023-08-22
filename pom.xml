@@ -101,13 +101,15 @@
 				    <artifactId>seata-spring-boot-starter</artifactId>
 				    <version>${seata.springboot.starter.version}</version>
 				</dependency>
-				
+
+			<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
 				<dependency>
 					<groupId>com.squareup.okhttp3</groupId>
 					<artifactId>okhttp</artifactId>
 					<version>3.14.4</version>
 			     </dependency>
-            </dependencies>
+
+		</dependencies>
   
  
             </dependencyManagement>

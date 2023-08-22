@@ -9,9 +9,12 @@
 	</parent>
 	 
 	<artifactId>wimoor-gateway</artifactId>
+
 	<name>wimoor-gateway</name>
-	<packaging>jar</packaging>
 	<description>for wimoor sso-client </description>
+
+	<packaging>jar</packaging>
+
 	<properties>
 		<java.version>1.8</java.version>
 		<spring.shiro.version>1.6.0</spring.shiro.version>
@@ -101,10 +104,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                  <configuration>
-                     <source>1.8</source>
-                     <target>1.8</target>
-                 </configuration>
             </plugin>
         </plugins>
     </build>
