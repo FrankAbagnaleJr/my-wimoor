@@ -39,9 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 public class NotifyController  {
 	@Resource
 	INotifyHandlerService notifyHandlerService;
- 
- 
-	 
 
 	@PostMapping("/addAnnounce")
 	public Result<?> addAnnounceAction(@RequestBody	SystemNotify notify ) {
