@@ -33,11 +33,21 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
     SchedulerFactoryBeanWithShutdownDelay schedulerFactory;
     @Autowired
     QuartzTaskMapper quartzTaskMapper;
+
+    /**
+     * 根据数据库表中的对象 把任务 添加到调度器
+     *
+     * @param quartzTask
+     * @return 添加成功或者失败
+     */
     @Override
     public boolean addScheduler(QuartzTask quartzTask) {
         try {
-        	Scheduler scheduler = schedulerFactory.getScheduler();
+            // 得到调度器
+            Scheduler scheduler = schedulerFactory.getScheduler();
+            // 创建任务
             JobDetail jobDetail = buildJod(quartzTask);
+            // 创建cron调度策略,这里配置了错过策略是执行错过的第一个任务，其他按照正常任务执行
             CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(quartzTask.getCron()).withMisfireHandlingInstructionFireAndProceed();
             // 构建触发器trigger
             Trigger trigger = TriggerBuilder.newTrigger()
@@ -46,6 +56,7 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
                     .withSchedule(scheduleBuilder)
                     .withPriority(quartzTask.getPriority())
                     .build();
+            // 准备调度
             scheduler.scheduleJob(jobDetail, trigger);
             return true;
         } catch (SchedulerException e) {
@@ -53,10 +64,17 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
             return false;
         }
     }
- 
- 
+
+
+    /**
+     * 根据传入的任务列表创建任务对象返回
+     *
+     * @param quartzTask
+     * @return 返回任务对象
+     */
     private static JobDetail buildJod(QuartzTask quartzTask) {
-    	JobKey jobKey = JobKey.jobKey(quartzTask.getName(), quartzTask.getFgroup());
+        JobKey jobKey = JobKey.jobKey(quartzTask.getName(), quartzTask.getFgroup());
+        //开始封装jobDataMap
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("id", quartzTask.getId());
         jobDataMap.put("jobPath", quartzTask.getPath());
@@ -65,6 +83,7 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
         jobDataMap.put("bean", quartzTask.getBean());
         jobDataMap.put("method", quartzTask.getMethod());
         jobDataMap.put("createTime", System.currentTimeMillis());
+        //返回任务对象
         return JobBuilder.newJob(QuartzTaskFactory.class)
                 .withIdentity(jobKey)
                 .withDescription(quartzTask.getDescription())
@@ -73,36 +92,57 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
                 .setJobData(jobDataMap)
                 .build();
     }
-  
-   public void refreshTask() {
-	   deleteAllTask();
-	   insertTask();
-   }
-   public void deleteAllTask() {
-	   List<QuartzJobsVO> slist = this.listScheduler();
-	   for(QuartzJobsVO item:slist) {
-		   this.deleteScheduler(item.getJobDetailName(), item.getGroupName());
-	   }
-   }
-   public void insertTask(){
-		   QueryWrapper<QuartzTask> queryWrapper=new QueryWrapper<QuartzTask>();
-		   queryWrapper.eq("isdelete", 0);
-		   List<QuartzTask> list = quartzTaskMapper.selectList(queryWrapper);
-		   list.forEach(item->{
-			   if(this.findScheduler(item.getName(), item.getFgroup())==false) {
-				   this.addScheduler(item);
-			   }
-		  });
-	  
 
+    /**
+     * 刷新任务，先删除全部任务，再重新插入任务
+     */
+    public void refreshTask() {
+        deleteAllTask();
+        insertTask();
     }
-	
-    
+
+    /**
+     * 删除全部任务
+     */
+    public void deleteAllTask() {
+        List<QuartzJobsVO> slist = this.listScheduler();
+        for (QuartzJobsVO item : slist) {
+            this.deleteScheduler(item.getJobDetailName(), item.getGroupName());
+        }
+    }
+
+    /**
+     * 插入全部任务
+     */
+    public void insertTask() {
+        QueryWrapper<QuartzTask> queryWrapper = new QueryWrapper<QuartzTask>();
+        queryWrapper.eq("isdelete", 0);
+        //把没逻辑删除的任务都查询出来
+        List<QuartzTask> list = quartzTaskMapper.selectList(queryWrapper);
+        //循环每一个任务，如果调度器里没有这个任务，那么就把任务添加到调度器里
+        list.forEach(item -> {
+            if (this.findScheduler(item.getName(), item.getFgroup()) == false) {
+                this.addScheduler(item);
+            }
+        });
+    }
+
+    /**
+     * 更新调度器
+     *
+     * @param jobDetailName
+     * @param jobDetailGroup
+     * @param cron
+     * @return
+     */
     @Override
     public boolean updateScheduler(String jobDetailName, String jobDetailGroup, String cron) {
         try {
-          	Scheduler scheduler = schedulerFactory.getScheduler();
+            // 得到一个调度器
+            Scheduler scheduler = schedulerFactory.getScheduler();
+            // 创建任务key
             JobKey jobKey = JobKey.jobKey(jobDetailName, jobDetailGroup);
+            //如果传入的cron是无效的 或 查不到这个任务，那么就返回false
             if (!CronExpression.isValidExpression(cron) || !scheduler.checkExists(jobKey)) {
                 return false;
             }
@@ -112,7 +152,7 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
                     .newTrigger()
                     .withIdentity(triggerKey)
                     .withSchedule(CronScheduleBuilder.cronSchedule(cron)).build();
- 
+            //把新的任务和触发器添加到调度器中
             scheduler.rescheduleJob(triggerKey, newTrigger);
             return true;
         } catch (SchedulerException e) {
@@ -120,15 +160,25 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
             return false;
         }
     }
- 
+
+    /**
+     * 删除调度器，根据任务名字和组来删除
+     * @param jobDetailName 任务名字
+     * @param jobDetailGroup 任务组
+     * @return
+     */
     @Override
     public boolean deleteScheduler(String jobDetailName, String jobDetailGroup) {
         try {
-          	Scheduler scheduler = schedulerFactory.getScheduler();
+            //得到调度器
+            Scheduler scheduler = schedulerFactory.getScheduler();
+            //根据任务名字和组创建任务key
             JobKey jobKey = JobKey.jobKey(jobDetailName, jobDetailGroup);
+            //去调度器中查询人任务key，如果不存在返回false
             if (!scheduler.checkExists(jobKey)) {
                 return false;
             }
+            //如果存在那么就删除
             scheduler.deleteJob(jobKey);
             return true;
         } catch (SchedulerException e) {
@@ -136,11 +186,18 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
             return false;
         }
     }
- 
+
+
+    /**
+     * 暂停调度器
+     * @param jobDetailName
+     * @param jobDetailGroup
+     * @return
+     */
     @Override
     public boolean puaseScheduler(String jobDetailName, String jobDetailGroup) {
         try {
-          	Scheduler scheduler = schedulerFactory.getScheduler();
+            Scheduler scheduler = schedulerFactory.getScheduler();
             JobKey jobKey = JobKey.jobKey(jobDetailName, jobDetailGroup);
             if (!scheduler.checkExists(jobKey)) {
                 return false;
@@ -152,11 +209,17 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
             return false;
         }
     }
- 
+
+    /**
+     * 恢复调度器
+     * @param jobDetailName
+     * @param jobDetailGroup
+     * @return
+     */
     @Override
     public boolean resumeScheduler(String jobDetailName, String jobDetailGroup) {
         try {
-          	Scheduler scheduler = schedulerFactory.getScheduler();
+            Scheduler scheduler = schedulerFactory.getScheduler();
             JobKey jobKey = JobKey.jobKey(jobDetailName, jobDetailGroup);
             if (!scheduler.checkExists(jobKey)) {
                 return false;
@@ -169,10 +232,16 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
         }
     }
 
+    /**
+     * 查找调度器
+     * @param jobDetailName
+     * @param jobDetailGroup
+     * @return
+     */
     @Override
     public boolean findScheduler(String jobDetailName, String jobDetailGroup) {
         try {
-          	Scheduler scheduler = schedulerFactory.getScheduler();
+            Scheduler scheduler = schedulerFactory.getScheduler();
             JobKey jobKey = JobKey.jobKey(jobDetailName, jobDetailGroup);
             if (!scheduler.checkExists(jobKey)) {
                 return false;
@@ -183,40 +252,55 @@ public class SystemSchedulerServiceImpl implements SystemSchedulerService {
             return false;
         }
     }
-    
-	 
-	public List<QuartzJobsVO> listScheduler() {
-		// TODO Auto-generated method stub
-      	Scheduler scheduler = schedulerFactory.getScheduler();
-		 GroupMatcher<JobKey> matcher = GroupMatcher.anyJobGroup();
-	        Set<JobKey> jobKeys = null;
-	        List<QuartzJobsVO> jobList = new ArrayList<QuartzJobsVO>();
-	        try {
-	            jobKeys = scheduler.getJobKeys(matcher);
-	            for (JobKey jobKey : jobKeys) {
-	                List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
-	                for (Trigger trigger : triggers) {
-	                    QuartzJobsVO job = new QuartzJobsVO();
-	                    job.setJobDetailName(jobKey.getName());
-	                    job.setGroupName(jobKey.getGroup());
-	                    job.setJobCronExpression("触发器:" + trigger.getKey());
-	                    Trigger.TriggerState triggerState = scheduler.getTriggerState(trigger.getKey());
-	                    job.setStatus(triggerState.name());
-	                    if (trigger instanceof CronTrigger) {
-	                        CronTrigger cronTrigger = (CronTrigger) trigger;
-	                        String cronExpression = cronTrigger.getCronExpression();
-	                        job.setJobCronExpression(cronExpression);
-	                        job.setTimeZone(cronTrigger.getTimeZone().getID());
-	                    }
-	                    jobList.add(job);
-	                }
-	            }
-	 
-	        } catch (SchedulerException e) {
-	            e.printStackTrace();
-	        }
-	        return jobList;
 
-	}
-  
+
+    /**
+     * 得到所有的任务对象
+     * @return
+     */
+    public List<QuartzJobsVO> listScheduler() {
+        // TODO Auto-generated method stub
+        //得到调度器
+        Scheduler scheduler = schedulerFactory.getScheduler();
+        //创建组匹配器
+        GroupMatcher<JobKey> matcher = GroupMatcher.anyJobGroup();
+        //创建孔的任务key集合
+        Set<JobKey> jobKeys = null;
+        //创建一个任务值对象集合
+           //QuartzJobsVO里面有任务名字、任务组、cron表达式、时区、状态
+        List<QuartzJobsVO> jobList = new ArrayList<QuartzJobsVO>();
+        try {
+            //从调度去中根据组匹配器获取任务key的集合
+            jobKeys = scheduler.getJobKeys(matcher);
+            //循环集合每一个任务key
+            for (JobKey jobKey : jobKeys) {
+                //从调度器中根据任务key取所有的触发器
+                List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+                //循环每一个触发器
+                for (Trigger trigger : triggers) {
+                    //新建一个任务对象，开始赋值封装，封装完了添加到jobList中
+                    QuartzJobsVO job = new QuartzJobsVO();
+                    job.setJobDetailName(jobKey.getName());
+                    job.setGroupName(jobKey.getGroup());
+                    job.setJobCronExpression("触发器:" + trigger.getKey());
+                    Trigger.TriggerState triggerState = scheduler.getTriggerState(trigger.getKey());
+                    job.setStatus(triggerState.name());
+                    //如果是cron的调度器，那么重新封装cron表达式和时区
+                    if (trigger instanceof CronTrigger) {
+                        CronTrigger cronTrigger = (CronTrigger) trigger;
+                        String cronExpression = cronTrigger.getCronExpression();
+                        job.setJobCronExpression(cronExpression);
+                        job.setTimeZone(cronTrigger.getTimeZone().getID());
+                    }
+                    jobList.add(job);
+                }
+            }
+
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+        return jobList;
+
+    }
+
 }

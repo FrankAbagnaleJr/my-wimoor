@@ -1,3 +1,4 @@
 spring:
   profiles:
+    #上线要换成prod，因为拉去亚马逊数据的run方法是根据prod来执行的，dev不会执行。
     active: dev
