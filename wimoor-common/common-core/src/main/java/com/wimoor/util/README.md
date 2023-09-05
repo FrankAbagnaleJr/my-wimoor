@@ -1,0 +1,2 @@
+SpringUtil 继承了 ApplicationContextAware
+封装了根据名字、class文件获取Bean

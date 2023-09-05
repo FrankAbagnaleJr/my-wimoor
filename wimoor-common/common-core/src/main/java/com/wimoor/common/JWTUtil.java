@@ -11,6 +11,9 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.wimoor.common.result.ResultCode;
 
+/**
+ * token类，生成、校验、解析
+ */
 public class JWTUtil {
      public static final long TOKEN_EXPIRE_TIME = 7200 * 1000;
      private static final String ISSUER = "cheng";
