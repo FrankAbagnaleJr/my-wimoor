@@ -58,7 +58,7 @@ public class AmazonAuthorityController {
 	    }
 	 	
 	 
-	    @ApiOperation(value = "获取店铺")
+	    @ApiOperation(value = "获取店铺,（登录成功后主界面数据调用的接口 - J）")
 	    @GetMapping("/getAmazonGroup")
 	    public Result<List<AmazonGroup>> getAmazonGroupAction() {
 	    	UserInfo userinfo = UserInfoContext.get();

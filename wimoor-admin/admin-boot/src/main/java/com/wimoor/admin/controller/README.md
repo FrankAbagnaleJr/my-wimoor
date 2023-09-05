@@ -4,7 +4,7 @@ UserController
 
     https://app.wimoor.com/admin/api/v1/users/info
 
-MenuController
+MenuController 应该是界面的菜单数据
 
     https://app.wimoor.com/api/admin/api/v1/menus/route
 

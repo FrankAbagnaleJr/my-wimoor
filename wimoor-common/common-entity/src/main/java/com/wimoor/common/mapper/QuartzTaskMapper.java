@@ -8,6 +8,4 @@ import java.util.Map;
 
 @Mapper
 public interface QuartzTaskMapper extends BaseMapper<QuartzTask> {
-//    Map<String, Object> selectMapById(Long id);
-
 }

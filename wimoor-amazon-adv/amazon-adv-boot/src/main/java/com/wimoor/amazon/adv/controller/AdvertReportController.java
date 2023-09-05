@@ -13,6 +13,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -258,7 +259,8 @@ public class AdvertReportController {
 		Map<String, Object> result = amzAdvSumProductAdsService.getMonthSumProduct(param);
 		return result;
 	}
-	
+
+	@ApiOperation("登录成功主界面展示数据调用的接口 - J")
 	@PostMapping("/getsumproduct")
 	public Result<Map<String, Object>> getSumProductAction(@RequestBody QueryForSumProductDTO dto){
 		String begin =dto.getBegin();

@@ -303,7 +303,7 @@ public class UserController {
 	     * 提供用于用户登录认证信息
 	     */
 	    @ApiOperation(value = "根据登录用户ID获取用户名称等信息")
-	    @GetMapping("/info")
+	    @GetMapping("/info")	
 	    public Result<Map<String,Object>> getUserInfoById() {
 	    	UserInfo userInfo = UserInfoContext.get();
 	    	if(userInfo!=null) {

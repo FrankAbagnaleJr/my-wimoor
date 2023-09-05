@@ -1282,7 +1282,7 @@ public class MaterialController {
 			}
 		}
 	    
-	    
+	    @ApiOperation("得到拥有者的列表? 不知道获取什么数据，访问订单数量时调用的 -J")
 		@GetMapping("/getOwnerList")
 		public Result<List<Map<String,Object>>> getOwnerListAction() {
 			UserInfo user = UserInfoContext.get();
