@@ -1,10 +1,13 @@
 QuartzTaskFactory类 继承了 QuartzJobBean 任务对象
+
     创建任务对象用的.class文件就是这个类
 
 SystemSchedulerInit类 实现了 ApplicationRunner 接口
+
     在程序启动的时候会执行run方法，用来刷新所有quartz任务，开始拉去数据
 
 SystemSchedulerServiceImpl 实现了 SystemSchedulerService 接口
+
     里面写了很多关于执行拉去亚马逊数据的方法
     1. addScheduler(QuartzTask quartzTask) 根据数据库表中的定时任务对象 把任务 添加到调度器
     2. buildJod(QuartzTask quartzTask) 把数据库中的数据封装成 JobDetail任务对象
@@ -19,5 +22,6 @@ SystemSchedulerServiceImpl 实现了 SystemSchedulerService 接口
     11. listScheduler() 得到所有的List<QuartzJobsVO>任务对象，用来删除全部的任务
 
 SchedulerFactoryBeanWithShutdownDelay 继承了 SchedulerFactoryBean 类
+
     调用了 父类的.destroy()方法，然后线程睡眠1秒钟。
     destroy()方法百度查了是 关闭bean factory shutdown上的Quartz调度程序，停止所有计划的作业

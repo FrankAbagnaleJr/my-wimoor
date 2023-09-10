@@ -1,1 +1,1 @@
-这里的SpringUtil类实现了ApplicationContextAware接口，重写了里面的一些方方法，例如getBeab
+这里的SpringUtil类实现了ApplicationContextAware接口，重写了里面的一些方方法，例如getBean
